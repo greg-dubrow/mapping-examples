@@ -1,5 +1,6 @@
-## plot lat long onto maps
-# tutorial from https://rpubs.com/JuanPabloHA/MapsVignetteJP
+## plot lat long onto raster maps
+# tutorial from https://rpubs.com/JuanPabloHA/MapsVignetteJP 
+    # modified to deal with change in data link and source for map raster files
 
 # Loads the required required packages
 library(tidyverse)
@@ -102,7 +103,15 @@ max(crime$bcsrgclat) # -33.85237 (top)
 min(crime$bcsrgclng) # 151.175 (left)
 max(crime$bcsrgclng) # 151.233 (right)
 
-sydmap2 <- get_map(c(left = 151.10, bottom = -33.92344, right = 151.25, top = -33.84), maptype = "roadmap")
+sydmap2 <- get_map(c(left = 151.15, bottom = -33.92344, right = 151.3, top = -33.84), maptype = "roadmap")
 ggmap(sydmap2)
 
+## plot w/ ggmap call and layer crime data over
+ggmap(sydmap2) +
+  geom_point(data = crime, aes(x = bcsrgclng, y = bcsrgclat), color = "purple4", alpha=.03, size=1.1) +
+  #ggtitle("Sydney Outdoor Crime") +
+  labs(title = "Sydney Outdoor Crime", x = "", y = "") +
+  theme(plot.title = element_text(size = 24), 
+        axis.text.x = element_blank(), axis.ticks = element_blank(),
+        axis.text.y = element_blank())
 
