@@ -2,8 +2,7 @@
 # tutorial from https://rpubs.com/JuanPabloHA/MapsVignetteJP
 
 # Loads the required required packages
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(rgdal)
 library(tmap)
 library(ggmap)
@@ -108,3 +107,4 @@ ggmap(sydmap2)
 
 
 
+maryland_bridges <- read_csv("https://github.com/rfordatascience/tidytuesday/blob/master/data/2018/2018-11-27/baltimore_bridges.csv") 
