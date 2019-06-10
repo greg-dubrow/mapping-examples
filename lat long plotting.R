@@ -106,5 +106,3 @@ sydmap2 <- get_map(c(left = 151.10, bottom = -33.92344, right = 151.25, top = -3
 ggmap(sydmap2)
 
 
-
-maryland_bridges <- read_csv("https://github.com/rfordatascience/tidytuesday/blob/master/data/2018/2018-11-27/baltimore_bridges.csv") 
