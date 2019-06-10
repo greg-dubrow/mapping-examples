@@ -7,6 +7,9 @@ library(ggplot2)
 library(rgdal)
 library(tmap)
 library(ggmap)
+library(tmaptools)
+library(OpenStreetMap)
+library(osmdata)
 
 ## download data
 # Link in tutorial is dead, use this: 
@@ -34,7 +37,7 @@ plot(NSWLGA)
 # LGAs in the Sydney metropolitan area.
 
 # Create a logical object with TRUE values for the LGAs in the Sydney metropolitan area.
-# note, this is from original polygon file NSWLGA, not the dataframe NSWLGA_df
+# note, this uses postcodes from original polygon file NSWLGA to pull shape data, not the dataframe NSWLGA_df
 sydmetro <- NSWLGA$LGA_PID %in% c("NSW335", "NSW283", "NSW268", "NSW264", "NSW272", "NSW282", "NSW332", 
                                   "NSW315", "NSW295", "NSW325", "NSW270", "NSW234", "NSW229", "NSW331", 
                                   "NSW258", "NSW117", "NSW275", "NSW232", "NSW329", "NSW213", "NSW314", 
@@ -43,4 +46,65 @@ sydmetro <- NSWLGA$LGA_PID %in% c("NSW335", "NSW283", "NSW268", "NSW264", "NSW27
 
 # Plots a map of the LGAs that are part of the Sydney Metropolitan Area
 plot(NSWLGA[sydmetro, ], col = "deepskyblue2", main = "Sydney Metro", sub = "GRS 80")
+
+### Filling in polygons with colors to represent a distribution. This example uses made-up data, but could be 
+## things like income, rates of schooling, crime, disease, etc...
+
+# First we create a new column in our NSWLGA data frame containing values from a normal distribution
+set.seed(574)
+NSWLGA_Df$Rnorm <- rnorm(nrow(NSWLGA_Df))
+
+# Then we add the new column to the Spatial Polygon Data Frame 
+NSWLGA@data <- left_join(NSWLGA@data, NSWLGA_Df, by = "LG_PLY_PID")
+
+# Finally we plot the map
+qtm(NSWLGA[sydmetro,], "Rnorm", title = "Sydney Metro", sub ="GRS 80")
+
+# Plotting dots; 1st version base r, second in ggplot. 
+# This only plots locations from crime file. Not yet overalyed on a map
+plot(x = crime$bcsrgclng, y = crime$bcsrgclat, col = "coral1", main = "Sydney Outdoor Crimes")
+
+crime %>% 
+#  filter(incyear == 2015) %>%
+  ggplot() +
+  geom_point(aes(x = bcsrgclng, y = bcsrgclat), color = "purple4", alpha=.03, size=1.1) +
+  labs(title = "Outdoor Crimes in Sydney LGA", x = "Longitude", y = "Latitude")
+
+# different facets for each crime group
+crime %>% 
+#  filter(incyear == 2015) %>%
+  ggplot() +
+  geom_point(aes(x = bcsrgclng, y = bcsrgclat), color = "red", alpha  = .09, size=1.1) +
+  facet_wrap(~bcsrgrp, ncol = 2) +
+  labs(title = "Outdoor Crimes in Sydney LGA", subtitle = "by group", 
+       x = "Longitude", y = "Latitude")
+
+### adding plots to an actual map image
+# first, bring in ggmap of Syndey
+
+syd_map <- get_map(getbb("Sydney, Australia"),maptype = "roadmap")
+ggmap(syd_map)
+
+# to see min/max for map area...
+getbb ("sydney australia")
+# min       max
+# x 150.26083 151.34274
+# y -34.17324 -33.36415
+# unfortunately this returns a large map area. need more focused on downtown sydney...
+
+# this method uses get_map with bounded lat & long
+# left & right are longitdue, top and bottom are latitude. 
+# for negative numbers top or right should be higher (closer to 0)
+# get ratio of lat::long apporpriate to image shape you want...square, rectangle
+# for this example, to get idea of plot coordinates, run min and max of crime data lat & long
+    # add padding if desired
+min(crime$bcsrgclat) # -33.92344 (bottom)
+max(crime$bcsrgclat) # -33.85237 (top)
+min(crime$bcsrgclng) # 151.175 (left)
+max(crime$bcsrgclng) # 151.233 (right)
+
+sydmap2 <- get_map(c(left = 151.10, bottom = -33.92344, right = 151.25, top = -33.84), maptype = "roadmap")
+ggmap(sydmap2)
+
+
 
